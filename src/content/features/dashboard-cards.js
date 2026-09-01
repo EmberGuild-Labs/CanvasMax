@@ -102,6 +102,15 @@
       titleNode.textContent = nickname;
     }
 
+    // ------------------------------------------------- duplicate subtitle --
+    // Many Canvas installs put the same string in the card's title and its
+    // subtitle, so every card says its own name twice. Hide the echo.
+    const subtitle = card.querySelector('.ic-DashboardCard__header-subtitle');
+    if (subtitle && titleNode) {
+      const duplicate = subtitle.textContent.trim() === titleNode.textContent.trim();
+      subtitle.classList.toggle('cmx-duplicate-subtitle', duplicate);
+    }
+
     // ------------------------------------------------------------ links --
     renderLinks(card, courseId, ctx);
 

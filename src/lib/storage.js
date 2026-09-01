@@ -15,7 +15,7 @@
 
   const CanvasMax = (root.CanvasMax = root.CanvasMax || {});
 
-  const SCHEMA_VERSION = 1;
+  const SCHEMA_VERSION = 2;
 
   const DEFAULTS = Object.freeze({
     version: SCHEMA_VERSION,
@@ -29,6 +29,32 @@
       schedule: { start: '19:00', end: '07:00' },
       dimImages: false,
       font: { family: '', scale: 100 },
+
+      /** Per-role typography. See src/lib/fonts.js for what each role styles. */
+      fonts: { ui: '', headings: '', body: '', mono: '' },
+
+      /** Google Fonts families the user has imported, e.g. ["Inter"]. */
+      googleFonts: [],
+
+      /** Page background image. The image itself lives in storage.local. */
+      background: {
+        enabled: false,
+        // 'upload' reads from storage.local; 'url' uses a remote address.
+        source: 'upload',
+        url: '',
+        // cover | contain | tile | center
+        fit: 'cover',
+        // Percentage of a scrim drawn over the image so text stays readable.
+        dim: 45,
+        blur: 0,
+      },
+
+      /**
+       * Recolour light panels detected at runtime. On by default because it is
+       * what makes dark mode survive Canvas releases we have never seen.
+       */
+      autoFixSurfaces: true,
+
       customThemes: {},
       customCss: '',
     },
@@ -165,6 +191,17 @@
     // 0 -> 1: initial release. Nothing to move yet; the deep-merge against
     // DEFAULTS already fills in anything the blob is missing.
     1: (blob) => blob,
+
+    // 1 -> 2: a single font family became four typographic roles. Whatever the
+    // user had set applied to the whole interface, so that is where it lands.
+    2: (blob) => {
+      const family = blob?.theme?.font?.family;
+      if (!family) return blob;
+      const theme = { ...blob.theme };
+      theme.fonts = { ui: family, headings: '', body: '', mono: '', ...(theme.fonts || {}) };
+      if (!theme.fonts.ui) theme.fonts.ui = family;
+      return { ...blob, theme };
+    },
   };
 
   function migrate(blob) {
@@ -252,6 +289,9 @@
 
   // ------------------------------------------------------ local-only kv ----
 
+  /** storage.local key holding the uploaded background image data URI. */
+  const BACKGROUND_KEY = 'backgroundImage';
+
   async function getLocal(key, fallback = null) {
     try {
       const result = await area('local').get(key);
@@ -288,5 +328,6 @@
     getLocal,
     setLocal,
     removeLocal,
+    BACKGROUND_KEY,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : self);

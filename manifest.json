@@ -4,29 +4,26 @@
   "version": "1.0.0",
   "description": "Free, open-source Canvas LMS enhancer: dark mode, themes, dashboard grades, GPA + what-if calculators, planner. No accounts, no paywall.",
   "minimum_chrome_version": "102",
-
   "permissions": [
     "storage",
     "alarms",
     "scripting",
     "notifications"
   ],
-
   "host_permissions": [
     "*://*.instructure.com/*"
   ],
-
   "optional_host_permissions": [
     "*://*/*"
   ],
-
   "background": {
     "service_worker": "src/background/service-worker.js"
   },
-
   "content_scripts": [
     {
-      "matches": ["*://*.instructure.com/*"],
+      "matches": [
+        "*://*.instructure.com/*"
+      ],
       "js": [
         "src/content/early.js"
       ],
@@ -38,15 +35,20 @@
       "all_frames": false
     },
     {
-      "matches": ["*://*.instructure.com/*"],
+      "matches": [
+        "*://*.instructure.com/*"
+      ],
       "js": [
         "src/lib/util.js",
         "src/lib/storage.js",
         "src/lib/canvas-api.js",
         "src/lib/themes.js",
+        "src/lib/fonts.js",
         "src/lib/gpa.js",
         "src/lib/grades.js",
         "src/content/features/theme.js",
+        "src/content/features/appearance.js",
+        "src/content/features/surface-sweep.js",
         "src/content/features/ui-tweaks.js",
         "src/content/features/dashboard-cards.js",
         "src/content/features/card-grades.js",
@@ -61,12 +63,10 @@
       "all_frames": false
     }
   ],
-
   "options_ui": {
     "page": "src/options/options.html",
     "open_in_tab": true
   },
-
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "CanvasMax",
@@ -77,7 +77,6 @@
       "128": "icons/icon128.png"
     }
   },
-
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",

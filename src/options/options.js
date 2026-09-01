@@ -57,6 +57,15 @@
   const NAV_OPTIONS = Object.entries(window.CanvasMax.uiTweaks.NAV_ITEMS)
     .map(([value, label]) => ({ value, label }));
 
+  /** One text field per typographic role, straight from fonts.js. */
+  const FONT_FIELDS = Object.entries(window.CanvasMax.fonts.FONT_ROLES).map(([role, def]) => ({
+    type: 'text',
+    path: `theme.fonts.${role}`,
+    label: def.label,
+    hint: def.hint,
+    placeholder: 'Canvas default',
+  }));
+
   const SECTIONS = [
     {
       id: 'general',
@@ -105,16 +114,20 @@
           },
         ],
       }, {
-        title: 'Typography and images',
+        title: 'Typography',
         fields: [
-          {
-            type: 'text', path: 'theme.font.family', label: 'Font family',
-            hint: 'Any font installed on this computer. Leave blank for Canvas’s default.',
-            placeholder: 'e.g. Inter',
-          },
+          ...FONT_FIELDS,
           {
             type: 'number', path: 'theme.font.scale', label: 'Text size',
             hint: 'Percentage of the normal size.', min: 75, max: 150, step: 5,
+          },
+        ],
+      }, {
+        title: 'Readability',
+        fields: [
+          {
+            type: 'toggle', path: 'theme.autoFixSurfaces', label: 'Repair light panels automatically',
+            hint: 'Finds panels Canvas leaves white in dark mode and recolours them. Leave this on unless it causes trouble — it is what keeps dark mode working on Canvas screens this extension has never seen.',
           },
           {
             type: 'toggle', path: 'theme.dimImages', label: 'Dim images in dark mode',
@@ -122,7 +135,7 @@
           },
         ],
       }],
-      custom: 'themes',
+      custom: ['fonts', 'background', 'themes'],
     },
 
     {
@@ -401,7 +414,28 @@
     return wrap;
   }
 
+  function buildRange(field) {
+    const value = getPath(settings, field.path) ?? field.min ?? 0;
+    const output = el('output', {
+      text: `${value}${field.unit || ''}`,
+      style: { fontVariantNumeric: 'tabular-nums', minWidth: '46px', textAlign: 'right', fontSize: '13px' },
+    });
+    const input = el('input', {
+      type: 'range',
+      id: `f-${field.path}`,
+      min: field.min ?? 0,
+      max: field.max ?? 100,
+      step: field.step || 1,
+      value,
+      style: { width: '170px' },
+    });
+    input.addEventListener('input', () => { output.textContent = `${input.value}${field.unit || ''}`; });
+    input.addEventListener('change', () => update(field.path, Number(input.value)));
+    return el('div', { style: { display: 'flex', alignItems: 'center', gap: '10px' } }, [input, output]);
+  }
+
   const BUILDERS = {
+    range: buildRange,
     toggle: buildToggle,
     select: buildSelect,
     number: buildNumber,
@@ -1043,7 +1077,267 @@
     ]);
   }
 
+  // ------------------------------------------------------ google fonts ----
+
+  function renderFontsCard() {
+    const container = el('div', { class: 'card card--pad' });
+    const list = el('ul', { class: 'list' });
+    const status = el('p', { class: 'field__hint', style: { padding: '8px 0 0' } });
+
+    const input = el('input', {
+      type: 'text',
+      placeholder: 'Lora',
+      'aria-label': 'Google Fonts family name',
+      style: { flex: '1 1 auto', minWidth: '180px' },
+    });
+
+    const refreshList = () => {
+      list.textContent = '';
+      const families = settings.theme.googleFonts || [];
+      if (!families.length) {
+        list.append(el('li', { class: 'empty', text: 'No imported fonts yet.' }));
+        return;
+      }
+      for (const family of families) {
+        list.append(el('li', { class: 'list__row' }, [
+          el('span', {
+            text: family,
+            style: { fontFamily: `"${family}", inherit`, fontSize: '16px' },
+          }),
+          el('button', {
+            class: 'btn btn--sm btn--danger', type: 'button', text: 'Remove',
+            on: { click: () => removeFont(family) },
+          }),
+        ]));
+      }
+    };
+
+    async function importFont() {
+      const family = input.value.trim();
+      if (!window.CanvasMax.fonts.isValidFamilyName(family)) {
+        toast('Enter a family name like "Lora"');
+        return;
+      }
+
+      // Ask for access to Google's domains only at the moment it is needed,
+      // rather than demanding it at install time.
+      let granted = false;
+      try {
+        granted = await chrome.permissions.request({
+          origins: ['https://fonts.googleapis.com/*', 'https://fonts.gstatic.com/*'],
+        });
+      } catch (err) {
+        toast('Could not request permission');
+        console.warn(err);
+        return;
+      }
+      if (!granted) {
+        toast('Permission declined — fonts can’t be downloaded without it');
+        return;
+      }
+
+      status.textContent = `Downloading ${family}…`;
+      const result = await sendToWorker({ type: 'cmx:import-font', family });
+
+      if (!result?.ok) {
+        status.textContent = result?.error || 'Could not reach the background worker.';
+        return;
+      }
+
+      const families = [...new Set([...(settings.theme.googleFonts || []), family])];
+      settings = await storage.saveSettings({ theme: { googleFonts: families } });
+      status.textContent = `Imported ${family} — ${result.faces} styles, ${(result.bytes / 1024).toFixed(0)} KB.`;
+      input.value = '';
+      refreshList();
+      toast(`${family} imported`);
+    }
+
+    async function removeFont(family) {
+      const families = (settings.theme.googleFonts || []).filter((f) => f !== family);
+      const next = storage.deepMerge(settings, {});
+      next.theme.googleFonts = families;
+      settings = await storage.replaceSettings(next);
+      await sendToWorker({ type: 'cmx:remove-font', family });
+      refreshList();
+      toast(`Removed ${family}`);
+    }
+
+    container.append(
+      el('h3', { class: 'card__title', text: 'Google Fonts' }),
+      el('p', { class: 'field__hint', style: { padding: '10px 0' } }, [
+        'Import a family by name, then use it in any of the roles above. ',
+        'CanvasMax downloads the font once, in the background, and stores it on this device — ',
+        'your Canvas pages never contact Google.',
+      ]),
+      el('div', { style: { display: 'flex', gap: '8px', padding: '4px 0 12px' } }, [
+        input,
+        el('button', {
+          class: 'btn btn--primary', type: 'button', text: 'Import',
+          on: { click: importFont },
+        }),
+      ]),
+      list,
+      status
+    );
+
+    refreshList();
+    return container;
+  }
+
+  // -------------------------------------------------------- background ----
+
+  /**
+   * Downscale an uploaded image before storing it. A phone photo is several
+   * megabytes; as a page background it only ever needs to be screen-sized, and
+   * storage.local is not the place for the original.
+   */
+  async function toDownscaledDataUrl(file, maxDimension = 1920, quality = 0.82) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+    bitmap.close?.();
+
+    return { dataUrl: canvas.toDataURL('image/jpeg', quality), width, height };
+  }
+
+  function renderBackgroundCard() {
+    const container = el('div', { class: 'card card--pad' });
+    const preview = el('div', {
+      style: {
+        height: '150px',
+        borderRadius: 'var(--cmx-radius-sm)',
+        border: '1px solid var(--cmx-border)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'grid',
+        placeItems: 'center',
+        color: 'var(--cmx-text-muted)',
+        fontSize: '13px',
+        marginBottom: '14px',
+        overflow: 'hidden',
+      },
+    });
+    const status = el('p', { class: 'field__hint', style: { padding: '6px 0 0' } });
+
+    const fileInput = el('input', {
+      type: 'file',
+      accept: 'image/png,image/jpeg,image/webp,image/gif',
+      style: { display: 'none' },
+    });
+
+    async function refreshPreview() {
+      const background = settings.theme.background || {};
+      let image = '';
+      if (background.source === 'url') image = background.url || '';
+      else image = await storage.getLocal(storage.BACKGROUND_KEY, '');
+
+      if (image) {
+        preview.style.backgroundImage = `url("${image.replace(/"/g, '%22')}")`;
+        preview.textContent = '';
+      } else {
+        preview.style.backgroundImage = 'none';
+        preview.textContent = 'No background image yet';
+      }
+    }
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+      status.textContent = 'Processing…';
+      try {
+        const { dataUrl, width, height } = await toDownscaledDataUrl(file);
+        const kb = Math.round((dataUrl.length * 0.75) / 1024);
+        if (kb > 4096) {
+          status.textContent = 'That image is still too large after resizing. Try a smaller one.';
+          return;
+        }
+        await storage.setLocal(storage.BACKGROUND_KEY, dataUrl);
+        settings = await storage.saveSettings({
+          theme: { background: { enabled: true, source: 'upload' } },
+        });
+        status.textContent = `Saved — resized to ${width}x${height}, about ${kb} KB.`;
+        await refreshPreview();
+        render();
+        toast('Background set');
+      } catch (err) {
+        status.textContent = 'Could not read that image file.';
+        console.warn(err);
+      }
+    });
+
+    container.append(
+      el('h3', { class: 'card__title', text: 'Background image' }),
+      el('div', { style: { padding: '14px 0 0' } }, [preview]),
+      el('div', { class: 'btn-row' }, [
+        el('button', {
+          class: 'btn btn--primary', type: 'button', text: 'Upload an image',
+          on: { click: () => fileInput.click() },
+        }),
+        el('button', {
+          class: 'btn', type: 'button', text: 'Clear',
+          on: {
+            click: async () => {
+              await storage.removeLocal(storage.BACKGROUND_KEY);
+              settings = await storage.saveSettings({ theme: { background: { enabled: false } } });
+              status.textContent = '';
+              await refreshPreview();
+              render();
+              toast('Background cleared');
+            },
+          },
+        }),
+      ]),
+      buildField({
+        type: 'toggle', path: 'theme.background.enabled', label: 'Show the background image',
+      }),
+      buildField({
+        type: 'select', path: 'theme.background.source', label: 'Image source',
+        options: [
+          { value: 'upload', label: 'Uploaded image' },
+          { value: 'url', label: 'Web address' },
+        ],
+      }),
+      buildField({
+        type: 'text', path: 'theme.background.url', label: 'Image address',
+        hint: 'Must start with https://. Only used when the source is set to a web address.',
+        placeholder: 'https://example.com/wallpaper.jpg',
+        stack: true,
+      }),
+      buildField({
+        type: 'select', path: 'theme.background.fit', label: 'Fit',
+        options: [
+          { value: 'cover', label: 'Fill the window' },
+          { value: 'contain', label: 'Fit inside the window' },
+          { value: 'tile', label: 'Tile' },
+          { value: 'center', label: 'Centre at original size' },
+        ],
+      }),
+      buildField({
+        type: 'range', path: 'theme.background.dim', label: 'Dim',
+        hint: 'Fades the image toward the theme’s background colour. Text sitting over a photograph needs this.',
+        min: 0, max: 90, step: 5, unit: '%',
+      }),
+      buildField({
+        type: 'range', path: 'theme.background.blur', label: 'Blur',
+        min: 0, max: 20, step: 1, unit: 'px',
+      }),
+      status,
+      fileInput
+    );
+
+    refreshPreview();
+    return container;
+  }
+
   const CUSTOM_CARDS = {
+    fonts: renderFontsCard,
+    background: renderBackgroundCard,
     themes: renderThemesCard,
     courses: renderCoursesCard,
     domains: renderDomainsCard,
@@ -1123,8 +1417,8 @@
       ]));
     }
 
-    if (section.custom && CUSTOM_CARDS[section.custom]) {
-      node.append(CUSTOM_CARDS[section.custom]());
+    for (const key of [].concat(section.custom || [])) {
+      if (CUSTOM_CARDS[key]) node.append(CUSTOM_CARDS[key]());
     }
 
     main.append(node);

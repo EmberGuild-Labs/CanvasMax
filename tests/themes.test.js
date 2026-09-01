@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const { loadLibs } = require('./helper');
 
 const { themes, util } = loadLibs();
+require('../src/lib/fonts.js');
 
 test('every built-in theme defines all required colors', () => {
   for (const theme of Object.values(themes.BUILTIN_THEMES)) {
@@ -117,23 +118,26 @@ test('an empty or malformed schedule never claims to be active', () => {
   assert.equal(themes.isWithinSchedule(now, 'nonsense', '07:00'), false);
 });
 
-test('compilePreferences quotes the font family and clamps the scale', () => {
+test('compilePreferences delegates typography to the font roles', () => {
+  // Typography moved into fonts.js so the pre-paint boot cache and the live
+  // page compile it identically; this asserts the delegation still happens.
   const css = themes.compilePreferences({
-    theme: { font: { family: 'Inter', scale: 300 }, customCss: '' },
+    theme: { fonts: { ui: 'Inter' }, font: { scale: 300 }, customCss: '' },
     tweaks: {},
   });
-  assert.match(css, /font-family: Inter/);
+  assert.match(css, /font-family: "Inter"/);
   assert.match(css, /font-size: 150%/, 'scale is clamped to 150');
 });
 
-test('compilePreferences strips characters that could break out of the rule', () => {
+test('compilePreferences refuses a family that could break out of the rule', () => {
   const css = themes.compilePreferences({
-    theme: { font: { family: 'Evil}; body{display:none', scale: 100 } },
+    theme: { fonts: { ui: 'Evil}; body{display:none' }, font: { scale: 100 } },
     tweaks: {},
   });
   assert.ok(!css.includes('}; body{'), 'braces must not survive');
+  assert.equal(css, '', 'the whole family is rejected, not partially stripped');
 });
 
 test('compilePreferences emits nothing when no preferences are set', () => {
-  assert.equal(themes.compilePreferences({ theme: { font: {} }, tweaks: {} }), '');
+  assert.equal(themes.compilePreferences({ theme: { fonts: {}, font: {} }, tweaks: {} }), '');
 });

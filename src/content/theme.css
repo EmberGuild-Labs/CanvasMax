@@ -602,3 +602,159 @@ html.cmx-full-width #main { max-width: none !important; }
 
 /* Applied per-item from ui-tweaks.js for hidden global-nav entries. */
 html.cmx-themed .cmx-nav-hidden { display: none !important; }
+
+/* ====================================================================== */
+/* 15. Runtime surface repair                                             */
+/* ====================================================================== */
+
+/*
+ * Applied by src/content/features/surface-sweep.js to panels it found to be
+ * light at runtime. Canvas's newer screens are built from components whose
+ * class names are generated per build, so there is no stable selector to
+ * write — these two classes are how those panels get themed anyway.
+ */
+html.cmx-dark .cmx-surface-fix {
+  background-color: var(--cmx-surface) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-dark .cmx-ink-fix,
+html.cmx-dark .cmx-ink-fix > span,
+html.cmx-dark .cmx-ink-fix > strong,
+html.cmx-dark .cmx-ink-fix > b {
+  color: var(--cmx-text) !important;
+}
+
+/* ====================================================================== */
+/* 16. Contrast safety nets                                               */
+/* ====================================================================== */
+
+/*
+ * Buttons often wrap their label in a span carrying its own colour, so
+ * recolouring only the button left the label its original dark ink — which is
+ * how the header button ended up unreadable on a dark background.
+ */
+html.cmx-themed .btn > span,
+html.cmx-themed .btn > div,
+html.cmx-themed .Button > span,
+html.cmx-themed button[class*="Button"] > span,
+html.cmx-themed button[class*="Button"] > div,
+html.cmx-themed a[class*="Button"] > span,
+html.cmx-themed [role="button"] > span {
+  color: inherit !important;
+}
+
+html.cmx-themed .btn svg,
+html.cmx-themed button[class*="Button"] svg,
+html.cmx-themed [role="button"] svg {
+  fill: currentColor;
+}
+
+/*
+ * Canvas puts white text on a coloured header band on some screens. Section 5
+ * clears those bands to transparent, which would leave white text on the page
+ * ground, so pin the page-level headings to the theme's text colour instead of
+ * inheriting whatever the cleared band was using.
+ */
+html.cmx-themed .ic-Dashboard-header__layout h1,
+html.cmx-themed .ic-Dashboard-header h1,
+html.cmx-themed #dashboard_header_container h1,
+html.cmx-themed .ic-Action-header__Heading {
+  color: var(--cmx-text) !important;
+}
+
+/* ====================================================================== */
+/* 17. Density                                                            */
+/* ====================================================================== */
+
+/* The quick-link row wrapped to three lines on narrow cards. */
+html.cmx-themed .cmx-card-actions {
+  padding: 0 10px 8px !important;
+  gap: 3px !important;
+}
+html.cmx-themed .cmx-card-actions a {
+  font-size: 10.5px !important;
+  padding: 1px 6px !important;
+  line-height: 1.5;
+}
+
+/* Card titles are large enough to read as links without an underline. */
+html.cmx-themed .ic-DashboardCard__header-title,
+html.cmx-themed .ic-DashboardCard__header-subtitle,
+html.cmx-themed .ic-DashboardCard__link {
+  text-decoration: none !important;
+}
+
+/* Canvas's own activity icons sat unaligned once the card was restyled. */
+html.cmx-themed .ic-DashboardCard__action-container {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px !important;
+  min-height: 0 !important;
+}
+html.cmx-themed .ic-DashboardCard__action-container:empty {
+  display: none !important;
+}
+
+/* Subtitle duplicating the title is hidden by dashboard-cards.js. */
+html.cmx-themed .cmx-duplicate-subtitle { display: none !important; }
+
+/* Keep the header controls off the window edge. */
+html.cmx-themed .ic-Dashboard-header__layout,
+html.cmx-themed #dashboard_header_container {
+  padding-right: 12px;
+}
+
+/* ====================================================================== */
+/* 18. Background image                                                   */
+/* ====================================================================== */
+
+/*
+ * Two fixed layers behind everything: the image, then a scrim over it. Doing
+ * it this way rather than setting `body { background-image }` means the blur
+ * and dim apply only to the picture, never to the page's own text, and the
+ * whole thing stays put while the page scrolls.
+ */
+html.cmx-has-background,
+html.cmx-has-background body {
+  background-color: transparent !important;
+}
+
+html.cmx-has-background body::before,
+html.cmx-has-background body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+html.cmx-has-background body::before {
+  z-index: -2;
+  background-image: var(--cmx-bgimg, none);
+  background-size: var(--cmx-bgimg-size, cover);
+  background-repeat: var(--cmx-bgimg-repeat, no-repeat);
+  background-position: center center;
+  /* Scale up slightly so a blur never reveals the page edge. */
+  transform: scale(1.04);
+  filter: blur(var(--cmx-bgimg-blur, 0px));
+}
+
+html.cmx-has-background body::after {
+  z-index: -1;
+  background-color: var(--cmx-bg);
+  opacity: var(--cmx-bgimg-dim, 0.45);
+}
+
+/*
+ * With a picture behind them, transparent panels become unreadable. Give the
+ * main reading surfaces a real background again.
+ */
+html.cmx-has-background .ic-DashboardCard,
+html.cmx-has-background .content-box,
+html.cmx-has-background .cmx-panel,
+html.cmx-has-background #right-side .events_list,
+html.cmx-has-background .item-group-condensed,
+html.cmx-has-background .context_module {
+  background-color: var(--cmx-surface) !important;
+}

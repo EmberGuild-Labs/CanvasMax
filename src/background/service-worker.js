@@ -18,6 +18,7 @@ importScripts(
   '../lib/storage.js',
   '../lib/canvas-api.js',
   '../lib/themes.js',
+  '../lib/fonts.js',
   '../lib/grades.js',
   '../lib/gpa.js'
 );
@@ -38,9 +39,12 @@ const CONTENT_SCRIPTS = [
   'src/lib/storage.js',
   'src/lib/canvas-api.js',
   'src/lib/themes.js',
+  'src/lib/fonts.js',
   'src/lib/gpa.js',
   'src/lib/grades.js',
   'src/content/features/theme.js',
+  'src/content/features/appearance.js',
+  'src/content/features/surface-sweep.js',
   'src/content/features/ui-tweaks.js',
   'src/content/features/dashboard-cards.js',
   'src/content/features/card-grades.js',
@@ -276,6 +280,85 @@ async function updateBadge(items) {
   } catch { /* action API unavailable during teardown */ }
 }
 
+// -------------------------------------------------------- google fonts ----
+
+/** Refuse to cache a family that would bloat storage.local. */
+const MAX_FONT_BYTES = 3 * 1024 * 1024;
+
+function toBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  // Chunked so a large font cannot blow the argument limit on String.fromCharCode.
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
+
+/**
+ * Fetch a Google Fonts family and rewrite it into a self-contained stylesheet
+ * with every woff2 inlined as a data URI.
+ *
+ * Doing the download here rather than in the page is deliberate. The page
+ * never contacts Google, so the extension keeps its promise that nothing about
+ * the user's browsing leaves their machine, and the resulting CSS is immune to
+ * whatever content security policy the school's Canvas sets.
+ */
+async function importGoogleFont(family) {
+  const { fonts } = self.CanvasMax;
+  if (!fonts.isValidFamilyName(family)) {
+    return { ok: false, error: 'That does not look like a font family name.' };
+  }
+
+  const url = fonts.googleFontsUrl([family]);
+  if (!url) return { ok: false, error: 'Could not build a request for that family.' };
+
+  let css;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: response.status === 400
+          ? `Google Fonts has no family called "${family}".`
+          : `Google Fonts returned ${response.status}.`,
+      };
+    }
+    css = await response.text();
+  } catch (err) {
+    return { ok: false, error: `Could not reach Google Fonts: ${err.message}` };
+  }
+
+  const fontUrls = fonts.extractFontUrls(css);
+  if (!fontUrls.length) return { ok: false, error: 'That family returned no usable font files.' };
+
+  let total = 0;
+  for (const fontUrl of fontUrls) {
+    try {
+      const response = await fetch(fontUrl);
+      if (!response.ok) continue;
+      const buffer = await response.arrayBuffer();
+      total += buffer.byteLength;
+      if (total > MAX_FONT_BYTES) {
+        return { ok: false, error: 'That family is too large to cache. Try one with fewer styles.' };
+      }
+      const mime = fontUrl.endsWith('.woff2') ? 'font/woff2' : 'font/woff';
+      css = css.split(fontUrl).join(`data:${mime};base64,${toBase64(buffer)}`);
+    } catch {
+      // A style that fails to download simply falls back to another weight.
+    }
+  }
+
+  await storage.setLocal(`googleFont:${family}`, css);
+  return { ok: true, family, bytes: total, faces: fontUrls.length };
+}
+
+async function removeGoogleFont(family) {
+  await storage.removeLocal(`googleFont:${family}`);
+  return { ok: true };
+}
+
 // -------------------------------------------------------------- events ----
 
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -320,6 +403,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ ok: true, items });
         break;
       }
+
+      case 'cmx:import-font':
+        sendResponse(await importGoogleFont(message.family));
+        break;
+
+      case 'cmx:remove-font':
+        sendResponse(await removeGoogleFont(message.family));
+        break;
 
       case 'cmx:origins':
         sendResponse({ ok: true, origins: await knownOrigins() });

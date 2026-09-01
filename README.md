@@ -45,6 +45,9 @@ Which means there is nothing to charge for. See [How it works](#how-it-works).
 | "What do I need on the final?" | Pro | Free |
 | Assignment preview without navigating | Free | Free (alt-click) |
 | Custom fonts and text scaling | Free | Free |
+| **Separate fonts per role** (UI / headings / content / code) | Not offered | Free |
+| **Google Fonts import** | Pro | Free, downloaded once and stored locally |
+| **Custom background image** | Pro | Free, upload or link |
 | Interface tweaks (hide logo, nav items, sidebar) | Free | Free |
 | **Settings sync across devices** | **Pro** | Free, via Chrome profile sync |
 | Due-date reminders | Pro | Free |
@@ -137,6 +140,35 @@ The math mirrors Canvas's own, including the part people get wrong: in a weighte
 
 Optional desktop notifications before work is due, at lead times you choose (1 week through 30 minutes). The background worker checks every 30 minutes and never notifies twice for the same deadline. The toolbar badge shows how many things are due in the next 24 hours.
 
+### Backgrounds and typography
+
+Set a page background from an uploaded image or an `https://` address. Uploads
+are downscaled to at most 1920px and re-encoded before storage, so a phone photo
+does not sit in browser storage at full size.
+
+The image is painted on two fixed layers behind the page — the picture, then a
+scrim over it — rather than onto `body`. That way the blur and dim apply only to
+the photograph and never to the text on top of it, and the image stays put while
+the page scrolls. The dim slider is not decoration: text over a photograph is a
+legibility problem, and the scrim is the fix.
+
+Typography is split into four roles, so a display face on headings does not end
+up on a wall of reading:
+
+| Role | Styles |
+| --- | --- |
+| Interface | Navigation, buttons, menus, and everything CanvasMax adds |
+| Headings | Page titles, section headers, dashboard card names |
+| Course content | Assignment descriptions, pages, discussion posts |
+| Code | Code blocks and preformatted text |
+
+Any font installed on the machine works. For anything else, import a Google Font
+by name. CanvasMax downloads the family in the background, inlines the woff2
+files as data URIs, and stores the result on the device — so your Canvas pages
+never contact Google, and the font is immune to whatever content security policy
+your school's Canvas sets. Access to Google's domains is requested at the moment
+you import your first font, not at install time.
+
 ### Interface tweaks
 
 Hide the institution logo, breadcrumbs, right sidebar, dashboard greeting, or individual global-navigation items. Full-window width. Auto-expand modules. Custom fonts and text scaling. And a custom CSS box that can reference the CanvasMax theme variables, so your rules follow whichever theme is active.
@@ -161,6 +193,32 @@ Two Canvas-specific details the client handles:
 - **The `while(1);` prefix.** Canvas prepends it to JSON bodies as an anti-hijacking guard; it must be stripped before parsing.
 
 Pagination follows the RFC 5988 `Link` header's `rel="next"` rather than incrementing `page=N`, because Canvas uses bookmarked pagination on several endpoints where page numbers break.
+
+### Surviving Canvas releases
+
+Dark mode was originally a stylesheet full of Canvas selectors. That approach
+fails in a specific and ugly way: it forces the dark palette's *text* colours
+everywhere, but can only recolour backgrounds it has a selector for. Canvas's
+newer screens are built from components whose class names are generated per
+build (`css-1a2b3c-view`), so there is nothing stable to target — those panels
+stayed white while the text on them went light, and headings became invisible.
+
+Writing more selectors does not fix that; the next Canvas release breaks it
+again. So CanvasMax reads the **computed** background of each element and
+recolours the ones that are actually light, in two passes:
+
+1. Find opaque, near-neutral, light backgrounds and darken them. Only
+   near-neutral colours qualify — a saturated light background is nearly always
+   a status chip or a brand accent carrying meaning, and repainting those loses
+   information.
+2. Inside each darkened panel, lighten only the text that would now be
+   unreadable. Any descendant that paints its own background is skipped along
+   with its subtree, because its text sits on *that* background, not on the
+   panel that changed.
+
+The walk is scoped to the main content containers, debounced, run in idle time,
+and capped at 2500 elements per pass, since `getComputedStyle` forces style
+resolution. It can be turned off under Settings → Appearance → Readability.
 
 ### Endpoints used
 
@@ -194,6 +252,7 @@ src/
     themes.js                     palettes, CSS-variable compiler, contrast audit
     grades.js                     weighted/unweighted grade math, what-if solving
     gpa.js                        GPA scales and computation
+    fonts.js                      typographic roles, Google Fonts, CSS compilation
   content/
     early.js                      document_start, flash-free theme application
     boot.js                       page detection and feature dispatch
@@ -254,7 +313,7 @@ CanvasMax never requests broad host access up front. The optional permission exi
 ## Development
 
 ```bash
-npm test              # 132 unit tests (node:test, no dependencies)
+npm test              # 155 unit tests (node:test, no dependencies)
 npm run check         # syntax, manifest integrity, CSS variable coverage
 npm run icons         # regenerate icons/*.png
 npm run package       # check, then build dist/canvasmax-<version>.zip
@@ -262,7 +321,20 @@ npm run package       # check, then build dist/canvasmax-<version>.zip
 
 There is nothing to install — the test suite uses Node's built-in runner, and the extension has no dependencies.
 
-The tests cover the pure logic, which is where the bugs that matter live: grade computation (weighted, unweighted, excused, omitted, what-if, target-solving), GPA across all three scales, theme validation and contrast, `Link`-header pagination, the API client's caching and request de-duplication, settings merge and migration, planner normalisation and grouping, and URL classification.
+The tests cover the pure logic, which is where the bugs that matter live: grade computation (weighted, unweighted, excused, omitted, what-if, target-solving), GPA across all three scales, theme validation and contrast, `Link`-header pagination, the API client's caching and request de-duplication, settings merge and migration, planner normalisation and grouping, URL classification, the colour
+heuristics behind the surface sweep, and font-name sanitisation.
+
+Two of those deserve calling out, because they are security or accessibility
+boundaries rather than ordinary logic:
+
+- **Font names are rejected, not sanitised.** A family name arrives from a text
+  field, so anything containing a character a font family cannot have is refused
+  outright. Stripping the bad characters and accepting what is left turned
+  `url(evil)` into the plausible-looking family `urlevil` — harmless, but
+  silently not what anyone asked for.
+- **Every built-in theme is contrast-audited by a test**, including the colour a
+  filled button's label will actually be given. That check is what caught the
+  Clear Sky accent failing WCAG AA at 4.28:1.
 
 `npm run check` additionally catches things unit tests cannot: a syntax error in a file nothing imports, a manifest entry pointing at a renamed file, a CSS variable no theme defines, and drift between the manifest's content-script list and the service worker's dynamic-registration copy of it.
 
@@ -302,7 +374,15 @@ Add an entry to `BUILTIN_THEMES` in `src/lib/themes.js` with the nine required c
 
 ## Status and limitations
 
-- **Not yet verified against a live Canvas instance.** The logic is unit-tested and the endpoints are taken from Canvas's own API documentation, but the DOM selectors in `theme.css` and the dashboard features have not been exercised against a running Canvas. Expect to need selector adjustments on your institution's version — Canvas installs vary, and Instructure is migrating components to InstUI, whose generated class names are not stable.
+- **Tested on one real Canvas install, not many.** The first release was written
+  against Canvas's API documentation with no live instance to check against, and
+  it showed: on a real school Canvas the newer dashboard rendered light text on
+  panels that stayed white, making headings invisible. That is fixed — the
+  runtime surface sweep described above replaced the selector guessing — but only
+  one institution's Canvas has been exercised end to end. Other installs may turn
+  up surfaces the sweep misses. The toggle under Settings → Appearance →
+  Readability is the escape hatch, and a screenshot in an issue is the fastest
+  way to get it fixed.
 - **Firefox is not supported yet.** The code is close — Firefox supports MV3 — but `chrome.*` calls need a `browser.*` polyfill and the manifest needs a `browser_specific_settings` key.
 - **Reminders require Chrome to be running.** They are driven by `chrome.alarms`, not a push service.
 - **The hidden-grade fallback is capped** at eight courses per dashboard load, to avoid hammering Canvas.

@@ -113,7 +113,9 @@
       colors: {
         bg: '#eef4fb', surface: '#ffffff', border: '#cfdcec',
         text: '#1c2c3e', textMuted: '#5f7288',
-        accent: '#1f7ae0', navBg: '#1b3a5c', navText: '#e8f1fb', link: '#1f7ae0',
+        // Darker than it looks like it wants to be: at #1f7ae0 neither black
+        // nor white text cleared 4.5:1 on a filled button.
+        accent: '#1a68c4', navBg: '#1b3a5c', navText: '#e8f1fb', link: '#1a68c4',
       },
     },
     sepia: {
@@ -234,18 +236,18 @@
    */
   function compilePreferences(settings) {
     const parts = [];
-    const font = settings?.theme?.font || {};
 
-    if (font.family) {
-      // The family string comes from the user; quote it so a stray token can't
-      // terminate the declaration.
-      const safe = String(font.family).replace(/[^\w\s,'"-]/g, '');
-      parts.push(`html body, html .ic-app { font-family: ${safe}, "Lato", "Helvetica Neue", sans-serif !important; }`);
+    // Typography lives in fonts.js so the pre-paint boot cache and the live
+    // page compile it exactly the same way. Looked up at call time because
+    // fonts.js loads after this file.
+    if (CanvasMax.fonts) {
+      const css = CanvasMax.fonts.compileFontCss(
+        settings?.theme?.fonts,
+        settings?.theme?.font?.scale ?? 100
+      );
+      if (css) parts.push(css);
     }
-    if (Number(font.scale) && Number(font.scale) !== 100) {
-      const scale = Math.min(150, Math.max(75, Number(font.scale)));
-      parts.push(`html { font-size: ${scale}% !important; }`);
-    }
+
     if (settings?.theme?.dimImages) {
       parts.push('html.cmx-dark #content img:not(.cmx-keep), html.cmx-dark .ic-DashboardCard__header_image { filter: brightness(.82) contrast(1.02); }');
     }
@@ -294,6 +296,9 @@
       ['Muted text on surface', t.colors.textMuted, t.colors.surface, 3],
       ['Links on surface', t.colors.link, t.colors.surface, 3],
       ['Nav text on nav', t.colors.navText, t.colors.navBg, 4.5],
+      // Filled buttons pick their label colour automatically, so audit the
+      // colour that will actually be chosen rather than assuming white.
+      ['Button label on accent', readableTextOn(t.colors.accent), t.colors.accent, 4.5],
     ];
     return checks.map(([label, fg, bg, min]) => {
       const ratio = contrastRatio(fg, bg);

@@ -170,12 +170,23 @@
     return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
   }
 
+  const INK_DARK = '#12151a';
+  const INK_LIGHT = '#ffffff';
+
   /**
    * Pick whichever of black/white text is more readable on `background`.
-   * Used everywhere we let the user choose an arbitrary card color.
+   *
+   * This measures both candidates rather than testing the background's
+   * luminance against a fixed cutoff. A cutoff gets mid-tones wrong: a mid
+   * blue like #4f8cff sits below the threshold, so a cutoff hands back white
+   * for 3.2:1 — under WCAG AA — when black would have given 7.3:1. Users pick
+   * arbitrary accent colours, so this has to be right across the whole range,
+   * not just at the ends.
    */
   function readableTextOn(background) {
-    return luminance(background) > 0.45 ? '#12151a' : '#ffffff';
+    return contrastRatio(INK_DARK, background) >= contrastRatio(INK_LIGHT, background)
+      ? INK_DARK
+      : INK_LIGHT;
   }
 
   /** Linear blend of two hex colors; `amount` 0 => a, 1 => b. */
@@ -204,6 +215,69 @@
     }
     const hue = Math.abs(hash) % 360;
     return hslToHex(hue, 62, 46);
+  }
+
+  /**
+   * Parse any computed CSS color — `rgb()`, `rgba()`, `#hex`, `transparent` —
+   * into {r, g, b, a}. getComputedStyle always hands back rgb/rgba, but hex is
+   * accepted so the same helper works on authored values.
+   */
+  function parseCssColor(value) {
+    const input = String(value ?? '').trim().toLowerCase();
+    if (!input || input === 'transparent' || input === 'none') return null;
+
+    const rgb = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:[\s,/]+([\d.%]+))?\s*\)$/.exec(input);
+    if (rgb) {
+      let alpha = rgb[4] === undefined ? 1 : parseFloat(rgb[4]);
+      if (String(rgb[4]).endsWith('%')) alpha /= 100;
+      return {
+        r: Number(rgb[1]),
+        g: Number(rgb[2]),
+        b: Number(rgb[3]),
+        a: Number.isFinite(alpha) ? alpha : 1,
+      };
+    }
+    return parseHex(input);
+  }
+
+  /** WCAG relative luminance from 0-255 channels. */
+  function luminanceRgb({ r, g, b }) {
+    const channel = (value) => {
+      const c = value / 255;
+      return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  }
+
+  /** HSV saturation, 0 (grey) to 1 (fully saturated). */
+  function saturationRgb({ r, g, b }) {
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    return max === 0 ? 0 : (max - min) / max;
+  }
+
+  /**
+   * Is this an opaque, near-neutral, light background?
+   *
+   * This is the test that decides whether a panel gets recolored for dark
+   * mode. It deliberately only matches whites and light greys: a saturated
+   * light colour is almost always a status chip or a brand accent carrying
+   * meaning, and repainting those loses information.
+   */
+  function isConvertibleSurface(cssColor, {
+    minAlpha = 0.35, minLuminance = 0.5, maxSaturation = 0.22,
+  } = {}) {
+    const rgb = parseCssColor(cssColor);
+    if (!rgb) return false;
+    if (rgb.a < minAlpha) return false;
+    return luminanceRgb(rgb) >= minLuminance && saturationRgb(rgb) <= maxSaturation;
+  }
+
+  /** Would this text colour be too dark to read on a dark surface? */
+  function isDarkInk(cssColor, { maxLuminance = 0.4, minAlpha = 0.35 } = {}) {
+    const rgb = parseCssColor(cssColor);
+    if (!rgb || rgb.a < minAlpha) return false;
+    return luminanceRgb(rgb) < maxLuminance;
   }
 
   function hslToHex(h, s, l) {
@@ -260,8 +334,15 @@
     toHex,
     clamp,
     luminance,
+    luminanceRgb,
+    saturationRgb,
+    parseCssColor,
+    isConvertibleSurface,
+    isDarkInk,
     contrastRatio,
     readableTextOn,
+    INK_DARK,
+    INK_LIGHT,
     mix,
     lighten,
     darken,
