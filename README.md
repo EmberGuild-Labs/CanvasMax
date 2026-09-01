@@ -273,6 +273,27 @@ The tests cover the pure logic, which is where the bugs that matter live: grade 
 3. Add settings to `DEFAULTS` in `src/lib/storage.js`.
 4. Add a UI entry to `SECTIONS` in `src/options/options.js`.
 
+### The icon
+
+The mark is an artist's palette in pixel art — a nod to "Canvas", and to the
+unlimited custom themes that are the headline free feature. `tools/make-icons.js`
+draws it and writes all four PNGs.
+
+It is drawn as **two masters**, because Chrome's four sizes do not share one
+clean scale factor:
+
+| Master | Ships as |
+| --- | --- |
+| `paletteLarge()` — 32×32 | 32 (1×) and 128 (4×) |
+| `paletteSmall()` — 16×16 | 16 (1×) and 48 (3×) |
+
+Every size is an integer upscale of a master, so nothing is ever resampled and
+the pixels stay hard-edged. If you change the art, change both masters: pixel
+art has to be redrawn at each size rather than resized, since detail that reads
+at 32px turns to mud at 16px. That is also why the small master's body is
+written out row by row while the large one is rasterised from an ellipse — an
+ellipse rasterised at 16px comes out visibly lumpy.
+
 ### Adding a theme
 
 Add an entry to `BUILTIN_THEMES` in `src/lib/themes.js` with the nine required colors. The contrast test will tell you if any pairing is unreadable before it ships.
