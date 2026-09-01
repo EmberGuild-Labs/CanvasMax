@@ -1,0 +1,87 @@
+{
+  "manifest_version": 3,
+  "name": "CanvasMax",
+  "version": "1.0.0",
+  "description": "Free, open-source Canvas LMS enhancer: dark mode, themes, dashboard grades, GPA + what-if calculators, planner. No accounts, no paywall.",
+  "minimum_chrome_version": "102",
+
+  "permissions": [
+    "storage",
+    "alarms",
+    "scripting",
+    "notifications"
+  ],
+
+  "host_permissions": [
+    "*://*.instructure.com/*"
+  ],
+
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
+
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.instructure.com/*"],
+      "js": [
+        "src/content/early.js"
+      ],
+      "css": [
+        "src/content/theme.css",
+        "src/content/overlay.css"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
+    },
+    {
+      "matches": ["*://*.instructure.com/*"],
+      "js": [
+        "src/lib/util.js",
+        "src/lib/storage.js",
+        "src/lib/canvas-api.js",
+        "src/lib/themes.js",
+        "src/lib/gpa.js",
+        "src/lib/grades.js",
+        "src/content/features/theme.js",
+        "src/content/features/ui-tweaks.js",
+        "src/content/features/dashboard-cards.js",
+        "src/content/features/card-grades.js",
+        "src/content/features/todo.js",
+        "src/content/features/notes.js",
+        "src/content/features/gpa-panel.js",
+        "src/content/features/grade-calculator.js",
+        "src/content/features/assignment-preview.js",
+        "src/content/boot.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "CanvasMax",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

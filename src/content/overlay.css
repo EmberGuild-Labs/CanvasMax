@@ -1,0 +1,443 @@
+/*
+ * CanvasMax — styles for the UI CanvasMax itself injects (grade badges, the
+ * planner panel, notes, calculators, previews).
+ *
+ * Every custom property has a literal fallback so these components still look
+ * right when theming is switched off and Canvas's own light UI is showing.
+ */
+
+.cmx-root {
+  --cmx-ui-surface: var(--cmx-surface, #ffffff);
+  --cmx-ui-raised: var(--cmx-surface-raised, #ffffff);
+  --cmx-ui-hover: var(--cmx-surface-hover, #f1f3f5);
+  --cmx-ui-border: var(--cmx-border, #d4d9de);
+  --cmx-ui-text: var(--cmx-text, #2d3b45);
+  --cmx-ui-muted: var(--cmx-text-muted, #6b7780);
+  --cmx-ui-accent: var(--cmx-accent, #0374b5);
+  --cmx-ui-accent-text: var(--cmx-accent-text, #ffffff);
+  --cmx-ui-radius: var(--cmx-radius, 8px);
+  --cmx-ui-shadow: var(--cmx-shadow, 0 1px 3px rgba(16, 24, 40, .12));
+
+  font-family: inherit;
+  color: var(--cmx-ui-text);
+  box-sizing: border-box;
+}
+
+.cmx-root *,
+.cmx-root *::before,
+.cmx-root *::after { box-sizing: border-box; }
+
+/* ------------------------------------------------------------- panels ---- */
+
+.cmx-panel {
+  background: var(--cmx-ui-surface);
+  border: 1px solid var(--cmx-ui-border);
+  border-radius: var(--cmx-ui-radius);
+  box-shadow: var(--cmx-ui-shadow);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.cmx-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cmx-ui-border);
+  background: var(--cmx-bg-sunken, transparent);
+}
+
+.cmx-panel__title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--cmx-ui-muted);
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cmx-panel__actions { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.cmx-panel__body { padding: 8px 0; }
+.cmx-panel__body--pad { padding: 14px; }
+.cmx-panel.is-collapsed .cmx-panel__body { display: none; }
+
+/* ------------------------------------------------------------ controls --- */
+
+.cmx-btn {
+  appearance: none;
+  border: 1px solid var(--cmx-ui-border);
+  background: var(--cmx-ui-raised);
+  color: var(--cmx-ui-text);
+  border-radius: var(--cmx-radius-sm, 5px);
+  padding: 5px 10px;
+  font-size: 13px;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease;
+}
+.cmx-btn:hover { background: var(--cmx-ui-hover); }
+.cmx-btn:focus-visible { outline: 2px solid var(--cmx-ui-accent); outline-offset: 1px; }
+.cmx-btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+.cmx-btn--primary {
+  background: var(--cmx-ui-accent);
+  color: var(--cmx-ui-accent-text);
+  border-color: transparent;
+}
+.cmx-btn--primary:hover { background: var(--cmx-accent-hover, var(--cmx-ui-accent)); }
+
+.cmx-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--cmx-ui-muted);
+  padding: 4px 6px;
+}
+.cmx-btn--ghost:hover { background: var(--cmx-ui-hover); color: var(--cmx-ui-text); }
+
+.cmx-btn--icon {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.cmx-btn--icon svg { width: 15px; height: 15px; fill: currentColor; }
+
+.cmx-input,
+.cmx-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid var(--cmx-ui-border);
+  border-radius: var(--cmx-radius-sm, 5px);
+  background: var(--cmx-bg-sunken, #ffffff);
+  color: var(--cmx-ui-text);
+}
+.cmx-input:focus,
+.cmx-select:focus { outline: 2px solid var(--cmx-ui-accent); outline-offset: 0; }
+
+.cmx-input--score {
+  width: 68px;
+  text-align: right;
+  padding: 3px 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cmx-field { display: block; margin-bottom: 10px; }
+.cmx-field__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cmx-ui-muted);
+  margin-bottom: 4px;
+}
+
+.cmx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--cmx-accent-soft, rgba(3, 116, 181, .1));
+  color: var(--cmx-ui-text);
+  white-space: nowrap;
+}
+.cmx-chip--overdue { background: var(--cmx-danger, #c0392b); color: #fff; }
+.cmx-chip--today { background: var(--cmx-warning, #b45309); color: #fff; }
+.cmx-chip--done { background: var(--cmx-success, #0b874b); color: #fff; }
+
+/* --------------------------------------------------------------- lists --- */
+
+.cmx-list { list-style: none; margin: 0; padding: 0; }
+
+.cmx-group__label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 14px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cmx-ui-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.cmx-group__count { font-weight: 500; text-transform: none; letter-spacing: 0; }
+
+.cmx-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 14px;
+  border-left: 3px solid transparent;
+  transition: background .12s ease;
+}
+.cmx-item:hover { background: var(--cmx-ui-hover); }
+.cmx-item.is-done { opacity: .55; }
+.cmx-item.is-done .cmx-item__title { text-decoration: line-through; }
+
+.cmx-item__check {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--cmx-ui-accent);
+}
+
+.cmx-item__body { flex: 1 1 auto; min-width: 0; }
+
+.cmx-item__title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cmx-ui-text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmx-item__title:hover { color: var(--cmx-ui-accent); text-decoration: underline; }
+
+.cmx-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--cmx-ui-muted);
+}
+
+.cmx-item__course {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.cmx-item__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cmx-item-color, var(--cmx-ui-accent));
+}
+
+.cmx-empty {
+  padding: 18px 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--cmx-ui-muted);
+}
+
+.cmx-error {
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: var(--cmx-danger, #c0392b);
+}
+
+/* ------------------------------------------------------- grade badges ---- */
+
+.cmx-grade-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--cmx-accent-soft, rgba(3, 116, 181, .12));
+  color: var(--cmx-ui-text);
+  border: 1px solid var(--cmx-ui-border);
+}
+.cmx-grade-badge__letter { font-size: 11px; opacity: .8; font-weight: 600; }
+.cmx-grade-badge--none { opacity: .6; font-weight: 500; }
+
+/* Placed into the Canvas dashboard card's own header block. */
+.ic-DashboardCard__header_content .cmx-grade-badge { margin-top: 6px; }
+
+.cmx-card-actions {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 10px;
+  flex-wrap: wrap;
+}
+.cmx-card-actions a {
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--cmx-ui-border);
+  color: var(--cmx-ui-muted);
+  text-decoration: none;
+}
+.cmx-card-actions a:hover {
+  background: var(--cmx-ui-accent);
+  color: var(--cmx-ui-accent-text);
+  border-color: transparent;
+}
+
+/* --------------------------------------------------------------- notes --- */
+
+.cmx-note {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  border: none;
+  background: transparent;
+  color: var(--cmx-ui-text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 12px 14px;
+}
+.cmx-note:focus { outline: none; }
+.cmx-note__status {
+  padding: 0 14px 8px;
+  font-size: 11px;
+  color: var(--cmx-ui-muted);
+  min-height: 16px;
+}
+
+/* ----------------------------------------------------------------- gpa --- */
+
+.cmx-gpa__value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--cmx-ui-text);
+}
+.cmx-gpa__scale { font-size: 12px; color: var(--cmx-ui-muted); margin-left: 4px; }
+.cmx-gpa__summary { display: flex; align-items: baseline; margin-bottom: 10px; }
+
+.cmx-gpa-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 14px;
+  font-size: 12.5px;
+}
+.cmx-gpa-row__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmx-gpa-row__grade { color: var(--cmx-ui-muted); font-variant-numeric: tabular-nums; }
+.cmx-gpa-row input[type="number"] { width: 52px; }
+
+/* ------------------------------------------------------- what-if table --- */
+
+.cmx-whatif { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cmx-whatif th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--cmx-ui-muted);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--cmx-ui-border);
+}
+.cmx-whatif td { padding: 5px 8px; border-bottom: 1px solid var(--cmx-ui-border); }
+.cmx-whatif tr:last-child td { border-bottom: none; }
+.cmx-whatif__group { font-weight: 700; background: var(--cmx-bg-sunken, transparent); }
+.cmx-whatif__num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cmx-whatif__row.is-hypothetical { background: var(--cmx-accent-soft, rgba(3, 116, 181, .08)); }
+
+.cmx-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--cmx-ui-border);
+}
+.cmx-result__value {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cmx-result__delta { font-size: 13px; font-weight: 600; }
+.cmx-result__delta.is-up { color: var(--cmx-success, #0b874b); }
+.cmx-result__delta.is-down { color: var(--cmx-danger, #c0392b); }
+
+/* -------------------------------------------------------------- modal ---- */
+
+.cmx-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--cmx-overlay, rgba(16, 24, 40, .45));
+}
+
+.cmx-modal__dialog {
+  background: var(--cmx-ui-surface);
+  color: var(--cmx-ui-text);
+  border: 1px solid var(--cmx-ui-border);
+  border-radius: var(--cmx-ui-radius);
+  box-shadow: var(--cmx-shadow-lg, 0 12px 32px rgba(16, 24, 40, .2));
+  width: min(720px, 100%);
+  max-height: min(80vh, 800px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cmx-modal__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--cmx-ui-border);
+}
+.cmx-modal__title { margin: 0; font-size: 16px; font-weight: 700; flex: 1 1 auto; }
+.cmx-modal__meta { font-size: 12px; color: var(--cmx-ui-muted); margin-top: 3px; }
+.cmx-modal__body { padding: 16px 18px; overflow-y: auto; font-size: 14px; line-height: 1.6; }
+.cmx-modal__body img { max-width: 100%; height: auto; }
+.cmx-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--cmx-ui-border);
+}
+
+/* ------------------------------------------------------------ spinner ---- */
+
+.cmx-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--cmx-ui-border);
+  border-top-color: var(--cmx-ui-accent);
+  border-radius: 50%;
+  animation: cmx-spin .7s linear infinite;
+  display: inline-block;
+}
+@keyframes cmx-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cmx-spinner { animation-duration: 2s; }
+  .cmx-panel, .cmx-item, .cmx-btn { transition: none !important; }
+  html.cmx-themed .ic-DashboardCard { transition: none !important; }
+}
+
+/* Visually hidden but available to screen readers. */
+.cmx-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

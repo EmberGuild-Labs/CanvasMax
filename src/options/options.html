@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CanvasMax settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">CM</div>
+        <div class="brand__name">CanvasMax</div>
+      </div>
+      <p class="brand__version" id="version">v0.0.0</p>
+
+      <nav class="nav" id="nav" aria-label="Settings sections"></nav>
+
+      <div class="sidebar__footer">
+        <p>Every feature is free. No account, no server, no tracking.</p>
+        <p><a href="https://github.com/EmberGuild-Labs/CanvasMax" target="_blank" rel="noopener">Source &amp; issues</a></p>
+      </div>
+    </aside>
+
+    <main id="main">
+      <!-- Sections are rendered by options.js from the schema in this file's
+           companion script, so adding a setting means adding one entry. -->
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="../lib/util.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="../lib/themes.js"></script>
+  <script src="../lib/grades.js"></script>
+  <script src="../lib/gpa.js"></script>
+  <script src="../lib/canvas-api.js"></script>
+  <script src="../content/features/ui-tweaks.js"></script>
+  <script src="../content/features/dashboard-cards.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

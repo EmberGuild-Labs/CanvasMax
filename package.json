@@ -1,0 +1,20 @@
+{
+  "name": "canvasmax",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A free, open-source Chrome extension that enhances Canvas LMS: dark mode, unlimited themes, dashboard grades, GPA and what-if calculators, and a full planner.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EmberGuild-Labs/CanvasMax.git"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "icons": "node tools/make-icons.js",
+    "check": "node tools/check.js",
+    "package": "node tools/package.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

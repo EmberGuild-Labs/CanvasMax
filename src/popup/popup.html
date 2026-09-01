@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CanvasMax</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="head">
+    <div class="head__mark" aria-hidden="true">CM</div>
+    <div class="head__name">CanvasMax</div>
+    <label class="switch" title="Enable CanvasMax">
+      <input type="checkbox" id="enabled">
+      <span class="switch__track"></span>
+    </label>
+  </header>
+
+  <section class="block">
+    <h2 class="block__title">Appearance</h2>
+    <div class="segmented" id="mode" role="group" aria-label="Theme mode"></div>
+    <div class="row">
+      <span class="row__label">Dark theme</span>
+      <select id="darkTheme" aria-label="Dark theme"></select>
+    </div>
+    <div class="row">
+      <span class="row__label">Light theme</span>
+      <select id="lightTheme" aria-label="Light theme"></select>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="block__title">Quick toggles</h2>
+    <div id="toggles"></div>
+  </section>
+
+  <section class="block">
+    <h2 class="block__title">Coming up</h2>
+    <ul class="due" id="due"><li class="empty"><span class="spinner"></span></li></ul>
+  </section>
+
+  <footer class="foot">
+    <button class="btn btn--primary" id="open-options" type="button">All settings</button>
+    <button class="btn" id="refresh" type="button">Refresh page</button>
+  </footer>
+
+  <script src="../lib/util.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="../lib/themes.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

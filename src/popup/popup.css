@@ -1,0 +1,118 @@
+/* CanvasMax toolbar popup. Paints itself with the active CanvasMax theme. */
+
+* { box-sizing: border-box; }
+
+:root {
+  --cmx-bg: #ffffff;
+  --cmx-surface: #ffffff;
+  --cmx-surface-hover: #f1f3f5;
+  --cmx-border: #dfe3e8;
+  --cmx-border-strong: #c3cad2;
+  --cmx-text: #1f2933;
+  --cmx-text-muted: #66727e;
+  --cmx-accent: #0374b5;
+  --cmx-accent-text: #fff;
+  --cmx-accent-soft: #e4f0f8;
+  --cmx-danger: #c0392b;
+  --cmx-radius-sm: 6px;
+}
+
+body {
+  width: 320px;
+  margin: 0;
+  background: var(--cmx-bg);
+  color: var(--cmx-text);
+  font: 13px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cmx-border);
+}
+.head__mark {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--cmx-accent); color: var(--cmx-accent-text);
+  display: grid; place-items: center; font-weight: 800; font-size: 12px;
+}
+.head__name { font-weight: 700; font-size: 14px; flex: 1 1 auto; }
+
+.switch { position: relative; display: inline-block; width: 36px; height: 20px; flex: none; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch__track {
+  position: absolute; inset: 0; cursor: pointer;
+  background: var(--cmx-border-strong); border-radius: 999px; transition: background .15s;
+}
+.switch__track::before {
+  content: ""; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%; transition: transform .15s;
+}
+.switch input:checked + .switch__track { background: var(--cmx-accent); }
+.switch input:checked + .switch__track::before { transform: translateX(16px); }
+
+.block { padding: 11px 14px; border-bottom: 1px solid var(--cmx-border); }
+.block__title {
+  margin: 0 0 8px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--cmx-text-muted);
+}
+
+.segmented { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.segmented button {
+  appearance: none; font: inherit; font-size: 11.5px;
+  padding: 6px 2px; cursor: pointer;
+  border: 1px solid var(--cmx-border-strong);
+  background: var(--cmx-surface); color: var(--cmx-text);
+  border-radius: var(--cmx-radius-sm);
+}
+.segmented button:hover { background: var(--cmx-surface-hover); }
+.segmented button.is-active {
+  background: var(--cmx-accent); color: var(--cmx-accent-text); border-color: transparent; font-weight: 600;
+}
+
+.row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0;
+}
+.row__label { flex: 1 1 auto; font-size: 12.5px; }
+
+select {
+  font: inherit; font-size: 12.5px; padding: 5px 7px;
+  border: 1px solid var(--cmx-border-strong);
+  border-radius: var(--cmx-radius-sm);
+  background: var(--cmx-surface); color: var(--cmx-text);
+  max-width: 150px;
+}
+
+.due { list-style: none; margin: 0; padding: 0; max-height: 190px; overflow-y: auto; }
+.due li { padding: 6px 0; border-bottom: 1px solid var(--cmx-border); }
+.due li:last-child { border-bottom: none; }
+.due a {
+  display: block; color: var(--cmx-text); text-decoration: none;
+  font-weight: 600; font-size: 12.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.due a:hover { color: var(--cmx-accent); }
+.due__meta { font-size: 11px; color: var(--cmx-text-muted); }
+.due__meta.is-soon { color: var(--cmx-danger); font-weight: 600; }
+
+.empty { color: var(--cmx-text-muted); font-size: 12px; padding: 6px 0; }
+
+.foot { display: flex; gap: 8px; padding: 11px 14px; }
+.btn {
+  appearance: none; font: inherit; font-size: 12.5px; cursor: pointer;
+  flex: 1 1 auto; padding: 7px 10px; border-radius: var(--cmx-radius-sm);
+  border: 1px solid var(--cmx-border-strong);
+  background: var(--cmx-surface); color: var(--cmx-text);
+}
+.btn:hover { background: var(--cmx-surface-hover); }
+.btn--primary { background: var(--cmx-accent); color: var(--cmx-accent-text); border-color: transparent; }
+
+.spinner {
+  width: 14px; height: 14px; display: inline-block;
+  border: 2px solid var(--cmx-border); border-top-color: var(--cmx-accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

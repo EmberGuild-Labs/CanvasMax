@@ -1,0 +1,604 @@
+/*
+ * CanvasMax — Canvas LMS restyling.
+ *
+ * Everything here is gated behind `html.cmx-themed`, so with the extension
+ * disabled the file is inert. Colors are never hard-coded: they come from the
+ * custom properties that src/lib/themes.js compiles from the active palette,
+ * which is what lets an unlimited number of user themes reuse one stylesheet.
+ *
+ * `html.cmx-dark` additionally marks a dark palette, for the handful of rules
+ * that must invert rather than recolor (Canvas ships white-background images
+ * and light-only icon sprites).
+ *
+ * This file is loaded declaratively from the manifest at document_start so it
+ * is parsed before Canvas paints. See src/content/early.js for how the theme
+ * class is applied without a flash.
+ */
+
+/* ====================================================================== */
+/* 1. Base                                                                */
+/* ====================================================================== */
+
+html.cmx-themed {
+  color-scheme: var(--cmx-scheme, light);
+}
+
+html.cmx-themed,
+html.cmx-themed body {
+  background-color: var(--cmx-bg) !important;
+  color: var(--cmx-text) !important;
+}
+
+html.cmx-themed #application,
+html.cmx-themed #wrapper,
+html.cmx-themed #main,
+html.cmx-themed .ic-Layout-wrapper,
+html.cmx-themed .ic-Layout-columns,
+html.cmx-themed .ic-app-main-content,
+html.cmx-themed #content,
+html.cmx-themed #content-wrapper,
+html.cmx-themed .ic-Layout-contentMain {
+  background-color: transparent !important;
+  color: var(--cmx-text);
+}
+
+html.cmx-themed a { color: var(--cmx-link); }
+html.cmx-themed a:hover { color: var(--cmx-link-hover); }
+
+html.cmx-themed h1, html.cmx-themed h2, html.cmx-themed h3,
+html.cmx-themed h4, html.cmx-themed h5, html.cmx-themed h6,
+html.cmx-themed legend, html.cmx-themed dt {
+  color: var(--cmx-text) !important;
+}
+
+html.cmx-themed hr,
+html.cmx-themed .border,
+html.cmx-themed .ic-Table--hover-row tbody tr td {
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed ::placeholder { color: var(--cmx-text-faint) !important; }
+
+html.cmx-themed ::selection {
+  background: var(--cmx-accent);
+  color: var(--cmx-accent-text);
+}
+
+/* Scrollbars follow the palette rather than staying stock-white. */
+html.cmx-themed * {
+  scrollbar-color: var(--cmx-border-strong) transparent;
+}
+html.cmx-themed ::-webkit-scrollbar { width: 12px; height: 12px; }
+html.cmx-themed ::-webkit-scrollbar-track { background: transparent; }
+html.cmx-themed ::-webkit-scrollbar-thumb {
+  background: var(--cmx-border-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
+}
+html.cmx-themed ::-webkit-scrollbar-thumb:hover { background-color: var(--cmx-text-faint); background-clip: content-box; }
+
+/* ====================================================================== */
+/* 2. Global navigation (the left rail)                                   */
+/* ====================================================================== */
+
+html.cmx-themed #header,
+html.cmx-themed .ic-app-header,
+html.cmx-themed #mobile-header,
+html.cmx-themed .mobile-header-title {
+  background-color: var(--cmx-nav-bg) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed .ic-app-header__menu-list-link,
+html.cmx-themed .ic-app-header__menu-list-item,
+html.cmx-themed .mobile-header-hamburger,
+html.cmx-themed .ic-app-header__logomark {
+  color: var(--cmx-nav-text) !important;
+}
+
+html.cmx-themed .ic-app-header__menu-list-link:hover,
+html.cmx-themed .ic-app-header__menu-list-item.ic-app-header__menu-list-item--active .ic-app-header__menu-list-link {
+  background-color: var(--cmx-nav-hover) !important;
+  color: var(--cmx-nav-text) !important;
+}
+
+html.cmx-themed .ic-app-header__menu-list-item--active .ic-app-header__menu-list-link {
+  box-shadow: inset 3px 0 0 var(--cmx-nav-active);
+}
+
+html.cmx-themed .menu-item__badge {
+  background-color: var(--cmx-accent) !important;
+  color: var(--cmx-accent-text) !important;
+}
+
+/* Fly-out trays opened from the global nav. */
+html.cmx-themed [role="dialog"].ic-app-header__secondary-navigation,
+html.cmx-themed .ic-NavMenu,
+html.cmx-themed .ic-NavMenu__primary-content,
+html.cmx-themed .ic-NavMenu-list {
+  background-color: var(--cmx-surface) !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+/* ====================================================================== */
+/* 3. Breadcrumbs and page header                                         */
+/* ====================================================================== */
+
+html.cmx-themed #breadcrumbs,
+html.cmx-themed .ic-app-nav-toggle-and-crumbs {
+  background-color: var(--cmx-bg-sunken) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed #breadcrumbs a,
+html.cmx-themed #breadcrumbs li,
+html.cmx-themed #breadcrumbs span {
+  color: var(--cmx-text-muted) !important;
+}
+html.cmx-themed #breadcrumbs li:last-child a { color: var(--cmx-text) !important; }
+
+html.cmx-themed #breadcrumbs li a::after {
+  border-left-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed .ic-app-nav-toggle-and-crumbs .mobile-header-arrow,
+html.cmx-themed .ic-app-course-nav-toggle {
+  color: var(--cmx-text-muted) !important;
+}
+
+/* ====================================================================== */
+/* 4. Course navigation                                                   */
+/* ====================================================================== */
+
+html.cmx-themed #section-tabs li a,
+html.cmx-themed .section-tabs a {
+  color: var(--cmx-link) !important;
+  border-color: transparent !important;
+}
+
+html.cmx-themed #section-tabs li a:hover {
+  background-color: var(--cmx-surface-hover) !important;
+  border-radius: var(--cmx-radius-sm);
+}
+
+html.cmx-themed #section-tabs li a.active,
+html.cmx-themed .section-tabs a.active {
+  background-color: var(--cmx-accent) !important;
+  color: var(--cmx-accent-text) !important;
+  border-radius: var(--cmx-radius-sm);
+}
+
+html.cmx-themed #section-tabs-header,
+html.cmx-themed .ic-sidebar-app {
+  color: var(--cmx-text-muted) !important;
+}
+
+/* ====================================================================== */
+/* 5. Surfaces — the broad sweep                                          */
+/* ====================================================================== */
+
+/*
+ * Canvas paints most panels white with an inline or utility class. Rather than
+ * chase every one, recolor the common container primitives and let the more
+ * specific rules below correct the exceptions.
+ */
+html.cmx-themed .content-box,
+html.cmx-themed .ic-Action-header,
+html.cmx-themed .item-group-condensed,
+html.cmx-themed .ig-list,
+html.cmx-themed .ig-header,
+html.cmx-themed .ic-Form-control,
+html.cmx-themed .well,
+html.cmx-themed .alert,
+html.cmx-themed .pill,
+html.cmx-themed .ui-widget-content,
+html.cmx-themed .ui-dialog,
+html.cmx-themed .ui-tabs,
+html.cmx-themed .ui-tabs-panel,
+html.cmx-themed .tox-toolbar,
+html.cmx-themed .tox-editor-header {
+  background-color: var(--cmx-surface) !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed .ic-Action-header {
+  border-bottom-color: var(--cmx-border) !important;
+}
+
+/* InstUI renders with generated class names; these two roles are stable. */
+html.cmx-themed [class*="View-"][class*="background--primary"],
+html.cmx-themed [class*="-view--block"][style*="background"] {
+  background-color: var(--cmx-surface) !important;
+  color: var(--cmx-text) !important;
+}
+
+html.cmx-themed [class*="Menu__"],
+html.cmx-themed [role="menu"],
+html.cmx-themed [class*="Popover"][class*="content"],
+html.cmx-themed .ui-menu {
+  background-color: var(--cmx-surface-raised) !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border) !important;
+  box-shadow: var(--cmx-shadow-lg) !important;
+}
+
+html.cmx-themed [role="menuitem"]:hover,
+html.cmx-themed .ui-menu-item:hover {
+  background-color: var(--cmx-surface-hover) !important;
+}
+
+html.cmx-themed [role="dialog"],
+html.cmx-themed [class*="Modal__content"],
+html.cmx-themed [class*="Tray__content"] {
+  background-color: var(--cmx-surface) !important;
+  color: var(--cmx-text) !important;
+}
+
+/* ====================================================================== */
+/* 6. Dashboard cards                                                     */
+/* ====================================================================== */
+
+html.cmx-themed .ic-DashboardCard,
+html.cmx-themed [class*="DashboardCard"][class*="-view"] {
+  background-color: var(--cmx-surface) !important;
+  border-radius: var(--cmx-radius) !important;
+  box-shadow: var(--cmx-shadow) !important;
+  border: 1px solid var(--cmx-border) !important;
+  overflow: hidden;
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+
+html.cmx-themed .ic-DashboardCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cmx-shadow-lg) !important;
+}
+
+html.cmx-themed .ic-DashboardCard__header {
+  background-color: var(--cmx-surface) !important;
+}
+
+html.cmx-themed .ic-DashboardCard__header-title,
+html.cmx-themed .ic-DashboardCard__header-subtitle,
+html.cmx-themed .ic-DashboardCard__header-term {
+  color: var(--cmx-text) !important;
+}
+html.cmx-themed .ic-DashboardCard__header-subtitle,
+html.cmx-themed .ic-DashboardCard__header-term {
+  color: var(--cmx-text-muted) !important;
+}
+
+html.cmx-themed .ic-DashboardCard__action-container {
+  border-top: 1px solid var(--cmx-border) !important;
+}
+
+html.cmx-themed .ic-DashboardCard__action-badge {
+  background-color: var(--cmx-accent) !important;
+  color: var(--cmx-accent-text) !important;
+  border-color: var(--cmx-surface) !important;
+}
+
+html.cmx-themed .ic-DashboardCard__header_hero {
+  transition: background-color .2s ease, filter .2s ease;
+}
+
+/* Gradient card headers (dashboard.gradients). */
+html.cmx-gradient-cards .ic-DashboardCard__header_hero {
+  background-image: linear-gradient(135deg,
+    color-mix(in srgb, var(--cmx-card-color, #4f8cff) 100%, white 0%) 0%,
+    color-mix(in srgb, var(--cmx-card-color, #4f8cff) 62%, black 38%) 100%) !important;
+}
+
+/* Condensed: header hero collapses to a thin accent bar. */
+html.cmx-cards-condensed .ic-DashboardCard__header_hero {
+  height: 8px !important;
+  min-height: 8px !important;
+}
+html.cmx-cards-condensed .ic-DashboardCard__header_image { display: none !important; }
+html.cmx-cards-condensed .ic-DashboardCard__header_content { padding-top: 8px !important; }
+
+/* Compact: also drop the action row for a dense wall of cards. */
+html.cmx-cards-compact .ic-DashboardCard__header_hero {
+  height: 6px !important;
+  min-height: 6px !important;
+}
+html.cmx-cards-compact .ic-DashboardCard__header_image { display: none !important; }
+html.cmx-cards-compact .ic-DashboardCard__action-container { display: none !important; }
+html.cmx-cards-compact .ic-DashboardCard { min-height: 0 !important; }
+html.cmx-cards-compact .ic-DashboardCard__header_content { padding: 10px 12px !important; }
+
+html.cmx-hide-card-images .ic-DashboardCard__header_image { display: none !important; }
+
+/* ====================================================================== */
+/* 7. Right sidebar                                                       */
+/* ====================================================================== */
+
+html.cmx-themed #right-side-wrapper,
+html.cmx-themed #right-side,
+html.cmx-themed .ic-app-main-content__secondary {
+  background-color: transparent !important;
+  color: var(--cmx-text) !important;
+}
+
+html.cmx-themed #right-side .events_list,
+html.cmx-themed #right-side .todo-list,
+html.cmx-themed #right-side .coming_up,
+html.cmx-themed .ic-DashboardCard__box {
+  background-color: var(--cmx-surface) !important;
+  border-color: var(--cmx-border) !important;
+  border-radius: var(--cmx-radius);
+}
+
+html.cmx-themed #right-side h2,
+html.cmx-themed #right-side .h2 {
+  color: var(--cmx-text-muted) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-hide-right-sidebar #right-side-wrapper { display: none !important; }
+html.cmx-hide-right-sidebar #not_right_side,
+html.cmx-hide-right-sidebar .ic-Layout-contentMain { margin-right: 0 !important; }
+
+/* ====================================================================== */
+/* 8. Buttons and form controls                                           */
+/* ====================================================================== */
+
+html.cmx-themed .btn,
+html.cmx-themed .Button,
+html.cmx-themed button[class*="Button"],
+html.cmx-themed .ui-button {
+  background-color: var(--cmx-surface-raised) !important;
+  background-image: none !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border-strong) !important;
+  border-radius: var(--cmx-radius-sm) !important;
+  text-shadow: none !important;
+}
+
+html.cmx-themed .btn:hover,
+html.cmx-themed .Button:hover,
+html.cmx-themed button[class*="Button"]:hover {
+  background-color: var(--cmx-surface-hover) !important;
+}
+
+html.cmx-themed .btn-primary,
+html.cmx-themed .Button--primary,
+html.cmx-themed .btn-published,
+html.cmx-themed [class*="Button--primary"] {
+  background-color: var(--cmx-accent) !important;
+  color: var(--cmx-accent-text) !important;
+  border-color: transparent !important;
+}
+html.cmx-themed .btn-primary:hover,
+html.cmx-themed .Button--primary:hover {
+  background-color: var(--cmx-accent-hover) !important;
+}
+
+html.cmx-themed .btn-danger,
+html.cmx-themed .Button--danger {
+  background-color: var(--cmx-danger) !important;
+  color: var(--cmx-text-inverse) !important;
+  border-color: transparent !important;
+}
+
+html.cmx-themed input[type="text"],
+html.cmx-themed input[type="search"],
+html.cmx-themed input[type="email"],
+html.cmx-themed input[type="password"],
+html.cmx-themed input[type="number"],
+html.cmx-themed input[type="url"],
+html.cmx-themed input[type="date"],
+html.cmx-themed input[type="datetime-local"],
+html.cmx-themed select,
+html.cmx-themed textarea,
+html.cmx-themed .ic-Input,
+html.cmx-themed [class*="TextInput"] input,
+html.cmx-themed [class*="Select"] input {
+  background-color: var(--cmx-bg-sunken) !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border-strong) !important;
+  border-radius: var(--cmx-radius-sm) !important;
+}
+
+html.cmx-themed input:focus,
+html.cmx-themed select:focus,
+html.cmx-themed textarea:focus {
+  outline: 2px solid var(--cmx-accent) !important;
+  outline-offset: 1px;
+}
+
+html.cmx-themed label,
+html.cmx-themed .ic-Label,
+html.cmx-themed [class*="FormFieldLabel"] {
+  color: var(--cmx-text-muted) !important;
+}
+
+/* ====================================================================== */
+/* 9. Tables and lists                                                    */
+/* ====================================================================== */
+
+html.cmx-themed table,
+html.cmx-themed .ic-Table {
+  background-color: transparent !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed thead th,
+html.cmx-themed .ic-Table__header-row th {
+  background-color: var(--cmx-bg-sunken) !important;
+  color: var(--cmx-text-muted) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed tbody tr { border-color: var(--cmx-border) !important; }
+html.cmx-themed tbody tr:nth-child(even) { background-color: var(--cmx-surface) !important; }
+html.cmx-themed tbody tr:hover { background-color: var(--cmx-surface-hover) !important; }
+html.cmx-themed td { border-color: var(--cmx-border) !important; }
+
+/* ====================================================================== */
+/* 10. Modules, assignments, grades, quizzes                              */
+/* ====================================================================== */
+
+html.cmx-themed .context_module,
+html.cmx-themed .item-group-container .item-group-condensed,
+html.cmx-themed .ig-list .ig-row {
+  background-color: var(--cmx-surface) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed .context_module .header,
+html.cmx-themed .ig-header {
+  background-color: var(--cmx-bg-sunken) !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed .ig-row:hover,
+html.cmx-themed .context_module_item:hover {
+  background-color: var(--cmx-surface-hover) !important;
+}
+
+html.cmx-themed .ig-title,
+html.cmx-themed .item_name a,
+html.cmx-themed .ig-row .ig-title {
+  color: var(--cmx-link) !important;
+}
+
+html.cmx-themed .ig-details,
+html.cmx-themed .ig-details__item,
+html.cmx-themed .assignment-date-due,
+html.cmx-themed .points_possible_display,
+html.cmx-themed .type_icon {
+  color: var(--cmx-text-muted) !important;
+}
+
+html.cmx-themed #grades_summary,
+html.cmx-themed #grades_summary tr,
+html.cmx-themed .student_assignment {
+  background-color: transparent !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed .student_assignment.editable .grade,
+html.cmx-themed .score_holder,
+html.cmx-themed .grade {
+  color: var(--cmx-text) !important;
+}
+
+html.cmx-themed #student-grades-right-content .student_assignment,
+html.cmx-themed .final_grade {
+  background-color: var(--cmx-surface) !important;
+  border-radius: var(--cmx-radius);
+}
+
+/* Canvas's status pills. */
+html.cmx-themed .submission_status,
+html.cmx-themed .label,
+html.cmx-themed .badge {
+  background-color: var(--cmx-accent-soft) !important;
+  color: var(--cmx-text) !important;
+}
+
+/* ====================================================================== */
+/* 11. Discussions, announcements, inbox                                  */
+/* ====================================================================== */
+
+html.cmx-themed .discussion-section,
+html.cmx-themed .discussion-summary,
+html.cmx-themed .entry-content,
+html.cmx-themed .discussion_entry,
+html.cmx-themed .message_wrapper,
+html.cmx-themed .conversation,
+html.cmx-themed .messages .message {
+  background-color: var(--cmx-surface) !important;
+  color: var(--cmx-text) !important;
+  border-color: var(--cmx-border) !important;
+}
+
+html.cmx-themed .conversation.unread,
+html.cmx-themed .discussion.unread {
+  background-color: var(--cmx-accent-soft) !important;
+}
+
+html.cmx-themed .user_content,
+html.cmx-themed .show-content,
+html.cmx-themed .description {
+  color: var(--cmx-text) !important;
+}
+
+/* User-authored HTML often hard-codes black text on an assumed white page. */
+html.cmx-dark .user_content [style*="color: rgb(0, 0, 0)"],
+html.cmx-dark .user_content [style*="color:#000"],
+html.cmx-dark .user_content [style*="color: black"],
+html.cmx-dark .show-content [style*="color: rgb(0, 0, 0)"] {
+  color: var(--cmx-text) !important;
+}
+html.cmx-dark .user_content [style*="background-color: rgb(255, 255, 255)"],
+html.cmx-dark .user_content [style*="background:#fff"] {
+  background-color: var(--cmx-surface) !important;
+}
+
+/* ====================================================================== */
+/* 12. Calendar                                                           */
+/* ====================================================================== */
+
+html.cmx-themed .fc-view-container,
+html.cmx-themed .fc-content,
+html.cmx-themed .fc-body,
+html.cmx-themed .fc-head {
+  background-color: var(--cmx-surface) !important;
+  color: var(--cmx-text) !important;
+}
+html.cmx-themed .fc-widget-header,
+html.cmx-themed .fc-widget-content,
+html.cmx-themed .fc-day-header {
+  border-color: var(--cmx-border) !important;
+  color: var(--cmx-text-muted) !important;
+}
+html.cmx-themed .fc-today { background-color: var(--cmx-accent-soft) !important; }
+
+/* ====================================================================== */
+/* 13. Dark-only corrections                                              */
+/* ====================================================================== */
+
+/*
+ * Canvas ships monochrome icon sprites drawn in dark ink. Inverting the few
+ * that would otherwise vanish is cheaper and safer than shipping replacements.
+ */
+html.cmx-dark .ic-icon-svg--auto,
+html.cmx-dark .locked_icon,
+html.cmx-dark img[src*="/images/svg-icons/"],
+html.cmx-dark img[src$="messages/avatar-50.png"] {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+html.cmx-dark iframe.user_content_iframe,
+html.cmx-dark .tox-edit-area iframe {
+  background-color: #ffffff; /* keep embedded rich content readable */
+}
+
+html.cmx-dark .Grid__GradeCell .Grid__GradeCell__StartContainer {
+  background-color: var(--cmx-surface) !important;
+}
+
+/* ====================================================================== */
+/* 14. Optional interface tweaks                                          */
+/* ====================================================================== */
+
+html.cmx-hide-logo .ic-app-header__logomark-container,
+html.cmx-hide-logo .ic-app-header__logomark { display: none !important; }
+
+html.cmx-hide-breadcrumbs #breadcrumbs { display: none !important; }
+
+html.cmx-hide-greeting .ic-Dashboard-header__title,
+html.cmx-hide-greeting [data-testid="dashboard-header-greeting"] { display: none !important; }
+
+html.cmx-full-width .ic-Layout-wrapper,
+html.cmx-full-width #main { max-width: none !important; }
+
+/* Applied per-item from ui-tweaks.js for hidden global-nav entries. */
+html.cmx-themed .cmx-nav-hidden { display: none !important; }
